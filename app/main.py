@@ -3,9 +3,6 @@ from sqlalchemy.orm import Session
 from .database import SessionLocal, engine
 from . import models, schemas, crud
 
-# Initialize the database models
-models.Base.metadata.create_all(bind=engine)  # Only for local dev; for production use migrations
-
 app = FastAPI()
 
 # Dependency to get the database session
