@@ -1,15 +1,18 @@
+from __future__ import with_statement
 from logging.config import fileConfig
-
+import sys
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
+from app.models import Base
+from app.database import SQLALCHEMY_DATABASE_URL, engine
 from alembic import context
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Interpret the config file for Python logging.
+# Interpret the config file for Python logging. 
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -18,12 +21,18 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+config.set_main_option(
+    "sqlalchemy.url", 
+    "postgresql://postgres:ccPBVCZUKuhjTrvUFILiMUKhPRczaRcY@switchback.proxy.rlwy.net:31975/railway"
+)
 
 
 def run_migrations_offline() -> None:
@@ -76,3 +85,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+

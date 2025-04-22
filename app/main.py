@@ -3,16 +3,22 @@ from sqlalchemy.orm import Session
 from .database import SessionLocal, engine
 from . import models, schemas, crud
 
-models.Base.metadata.create_all(bind=engine)  # For local dev only
+# Initialize the database models
+models.Base.metadata.create_all(bind=engine)  # Only for local dev; for production use migrations
 
 app = FastAPI()
 
+# Dependency to get the database session
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+@app.get("/test", response_model=str)
+def test_route():
+    return "FastAPI is running correctly!"
 
 @app.post("/queue", response_model=schemas.QueueRead)
 def add_to_queue(item: schemas.QueueCreate, db: Session = Depends(get_db)):
