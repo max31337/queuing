@@ -7,7 +7,6 @@ from app.models import Base
 from app.database import SQLALCHEMY_DATABASE_URL, engine
 from alembic import context
 from app.models import *       # Import your models
-target_metadata = Base.metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
