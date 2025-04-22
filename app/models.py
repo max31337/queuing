@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Enum, DateTime
+import enum
 from .schemas import QueueStatus 
 from datetime import datetime
 from .database import Base
