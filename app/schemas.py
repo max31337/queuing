@@ -3,10 +3,14 @@ from datetime import datetime
 
 class QueueCreate(BaseModel):
     type: str
+    status: str = "waiting"  # optional if not used in model or DB
+    timestamp: datetime | None = None
 
-class QueueRead(QueueCreate):
+class QueueRead(BaseModel):
     id: int
+    type: str
+    status: str
     timestamp: datetime
 
     class Config:
-        from_attributes = True  # pydantic v2
+        orm_mode = True
