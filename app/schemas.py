@@ -4,7 +4,7 @@ from datetime import datetime
 
 class QueueCreate(BaseModel):
     type: str
-    status: Optional[str] = "pending"  # or Required
+    status: Optional[str] = "waiting"  
     timestamp: datetime | None = None
 
 class QueueRead(BaseModel):
