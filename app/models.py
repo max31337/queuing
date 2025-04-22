@@ -7,5 +7,5 @@ class QueueEntry(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     type = Column(String, nullable=False)
-    status = Column(String, nullable=False)
+    status = Column(String, nullable=False, default='waiting')
     timestamp = Column(DateTime, default=datetime.utcnow)
