@@ -9,12 +9,13 @@ def create_queue(db: Session, item: schemas.QueueCreate):
     db.refresh(db_item)
     return db_item
 
-def update_queue_status(db: Session, queue_id: int, status: schemas.QueueStatus):
+def update_queue_status(db: Session, queue_id: int, new_status: models.QueueStatus):
     queue_item = db.query(models.Queue).filter(models.Queue.id == queue_id).first()
-    if queue_item:
-        queue_item.status = status
-        db.commit()
-        db.refresh(queue_item)
+    if not queue_item:
+        return None
+    queue_item.status = new_status
+    db.commit()
+    db.refresh(queue_item)
     return queue_item
 
 def get_all_queue(db: Session):

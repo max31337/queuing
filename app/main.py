@@ -29,8 +29,8 @@ from fastapi import HTTPException
 @app.patch("/queue/{queue_id}", response_model=schemas.QueueRead)
 def update_queue_status(queue_id: int, update: schemas.QueueUpdate, db: Session = Depends(get_db)):
     result = crud.update_queue_status(db, queue_id, update.status)
-    if not result:
-        raise HTTPException(status_code=404, detail="Queue entry not found")
+    if result is None:
+        raise HTTPException(status_code=404, detail="Queue item not found")
     return result
 
 
