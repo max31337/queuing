@@ -9,7 +9,6 @@ class QueueCreate(BaseModel):
 class QueueRead(BaseModel):
     id: int
     type: str
-    status: str
     timestamp: datetime
 
     class Config:
