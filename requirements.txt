@@ -2,7 +2,9 @@ fastapi
 uvicorn[standard]
 requests
 pydantic>=2.0
-alembic
 sqlalchemy
+alembic
 pyserial
 psycopg2-binary>=2.9.10
+pywin32
+serial

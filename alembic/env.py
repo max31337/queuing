@@ -31,7 +31,7 @@ target_metadata = Base.metadata
 
 config.set_main_option(
     "sqlalchemy.url", 
-    "postgresql://postgres:ccPBVCZUKuhjTrvUFILiMUKhPRczaRcY@switchback.proxy.rlwy.net:31975/railway"
+    "postgresql://postgres:@localhost:5432/queueingdb"
 )
 
 
