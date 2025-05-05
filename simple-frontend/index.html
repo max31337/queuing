@@ -8,104 +8,107 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Queue Counter</h1>
-    <nav>
-        <button onclick="showPage('manualInput')">Manual Input</button>
-        <button onclick="showPage('archivedList')">Archived List</button>
-        <button onclick="showPage('counter')">Counter</button>
-        <button onclick="openQueueList()">Open Queue List</button> <!-- New Button -->
-    </nav>
+    <div class="container">
+        <h1>Queue Counter</h1>
+        <nav>
+            <button onclick="showPage('manualInput')">Manual Input</button>
+            <button onclick="showPage('archivedList')">Archived List</button>
+            <button onclick="showPage('counter')">Counter</button>
+            <button onclick="openQueueList()">Open Queue List</button>
+        </nav>
 
-    <!-- Manual Input Page -->
-    <section id="manualInput">
-        <h2>Manual Queue Input</h2>
-        <form id="queueForm">
-            <label for="type">Transaction Type:</label>
-            <select id="type" name="type" required>
-                <option value="Inquiry">Inquiry</option>
-                <option value="Deposit">Deposit</option>
-                <option value="Withdrawal">Withdrawal</option>
-            </select>
+        <!-- Manual Input Page -->
+        <section id="manualInput">
+            <h2>Manual Queue Input</h2>
+            <form id="queueForm">
+                <label for="type">Transaction Type:</label>
+                <select id="type" name="type" required>
+                    <option value="Inquiry">Inquiry</option>
+                    <option value="Deposit">Deposit</option>
+                    <option value="Withdrawal">Withdrawal</option>
+                </select>
 
-            <label for="status">Status:</label>
-            <select id="status" name="status" required>
-                <option value="waiting">Waiting</option>
-                <option value="processing">Processing</option>
-                <option value="done">Done</option>
-            </select>
+                <label for="status">Status:</label>
+                <select id="status" name="status" required>
+                    <option value="waiting">Waiting</option>
+                    <option value="processing">Processing</option>
+                    <option value="done">Done</option>
+                </select>
 
-            <button type="submit">Submit Queue</button>
-        </form>
-        <div id="manualInputResponse" style="margin-top: 20px; color: green;"></div>
+                <button type="submit">Submit Queue</button>
+            </form>
+            <div id="manualInputResponse" style="margin-top: 20px; color: green;"></div>
 
-        <!-- Update Skipped Queues Section -->
-        <div class="update-skipped-queues" style="margin-top: 40px;">
-            <h3>Update Skipped Queues</h3>
-            <ul id="skippedQueueUpdateList"></ul>
-        </div>
-    </section>
+            <!-- Update Skipped Queues Section -->
+            <div class="update-skipped-queues" style="margin-top: 40px;">
+                <h3>Update Skipped Queues</h3>
+                <ul id="skippedQueueUpdateList"></ul>
+            </div>
+        </section>
 
-    <!-- Archived List Page -->
-    <section id="archivedList">
-        <h2>Archived Queue List</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Queue Number</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="archivedQueueTable"></tbody>
-        </table>
-        <button onclick="loadArchivedPage('prev')">Previous</button>
-        <button onclick="loadArchivedPage('next')">Next</button>
-    </section>
-
-    <!-- Counter Page -->
-    <section id="counter" class="active">
-        <h2>Counter Management</h2>
-        <div class="next-number" id="nextNumber">Next: Loading...</div>
-        <div class="current-number" id="currentNumber">Serving: Loading...</div>
-        <form id="counterForm">
-            <input type="hidden" id="queueId" name="queueId" readonly> <!-- Hidden Queue ID -->
-
-            <label for="newStatus">New Status:</label>
-            <select id="newStatus" name="newStatus" required>
-                <option value="processing">Processing</option>
-                <option value="done">Done</option>
-            </select>
-
-            <button type="submit">Update Status</button>
-        </form>
-        <button onclick="skipCurrentQueue()" style="margin-top: 10px;">Skip</button>
-        <div id="counterResponse" style="margin-top: 20px; color: green;"></div>
-
-        <!-- Processing Queue Section -->
-        <div class="processing-queue">
-            <h3>Processing Queue</h3>
+        <!-- Archived List Page -->
+        <section id="archivedList">
+            <h2>Archived Queue List</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Queue Number</th>
                         <th>Type</th>
-                        <th>Action</th>
+                        <th>Status</th>
+                        <th>Date</th>
                     </tr>
                 </thead>
-                <tbody id="processingQueueTable"></tbody>
+                <tbody id="archivedQueueTable"></tbody>
             </table>
-        </div>
+            <button onclick="loadArchivedPage('prev')">Previous</button>
+            <button onclick="loadArchivedPage('next')">Next</button>
+        </section>
 
-        <!-- Last Served Section -->
-        <div class="last-served" id="lastServed">Last Served: None</div>
+        <!-- Counter Page -->
+        <section id="counter" class="active">
+            <h2>Counter Management</h2>
+            <div class="current-next">
+                <div id="nextNumber">Next: Loading...</div>
 
-        <!-- Skipped Queue Section -->
-        <div class="skipped-queues">
-            <h3>Skipped Queues</h3>
-            <ul id="skippedQueueList"></ul>
-        </div>
-    </section>
+                <div id="currentNumber">Serving: Loading...</div>
+            </div>
+            <form id="counterForm">
+                <input type="hidden" id="queueId" name="queueId" readonly>
+                <label for="newStatus">New Status:</label>
+                <select id="newStatus" name="newStatus" required>
+                    <option value="processing">Processing</option>
+                    <option value="done">Done</option>
+                </select>
+                <button type="submit">Update Status</button>
+            </form>
+            <button onclick="skipCurrentQueue()" style="margin-top: 10px;">Skip</button>
+            <div id="counterResponse" style="margin-top: 20px; color: green;"></div>
 
-    <script src="./script.js"></script> <!-- Link to external JavaScript -->
+            <!-- Processing Queue Section -->
+            <div class="processing-queue">
+                <h3>Processing Queue</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Queue Number</th>
+                            <th>Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="processingQueueTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Last Served Section -->
+            <div class="last-served" id="lastServed">Last Served: None</div>
+
+            <!-- Skipped Queue Section -->
+            <div class="skipped-queues">
+                <h3>Skipped Queues</h3>
+                <ul id="skippedQueueList"></ul>
+            </div>
+        </section>
+    </div>
+    <script src="./script.js"></script>
 </body>
 </html>

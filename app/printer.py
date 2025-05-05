@@ -1,16 +1,9 @@
 import sys
 import os
-
-# Add the project root directory to sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import win32print
 import serial
 import datetime
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app.models import QueueEntry
-from app.schemas import QueueStatus
 
 # ESC/POS commands for text size
 ESC = b'\x1b'
@@ -25,7 +18,7 @@ big_on = GS + b'\x21\x11'  # Larger font (height and width)
 big_off = GS + b'\x21\x00'  # Back to normal
 
 # Configure these
-printer_name = "Officom OC58H"
+printer_name = "POS58 Printer(3)"
 arduino_port = "COM3"  # Replace with your actual Arduino COM port
 baud_rate = 9600
 
@@ -35,9 +28,14 @@ inquiry_counter = 0
 deposit_counter = 0
 withdrawal_counter = 0
 
-# Open serial connection
-ser = serial.Serial(arduino_port, baud_rate, timeout=1)  # Set a timeout of 1 second
-print("Listening for Arduino input...")
+# Try to open the serial connection
+try:
+    ser = serial.Serial(arduino_port, baud_rate, timeout=1)  # Set a timeout of 1 second
+    print("Listening for Arduino input...")
+    arduino_connected = True
+except serial.SerialException:
+    print("Arduino not detected. Running without Arduino.")
+    arduino_connected = False
 
 # Function to save to the database
 def save_to_database(transaction_type: str, trans_no: int, timestamp: str):
@@ -83,38 +81,40 @@ def save_to_database(transaction_type: str, trans_no: int, timestamp: str):
     finally:
         db.close()
 
-while True:
-    try:
-        line = ser.readline().decode('utf-8').strip()
-        if line in ["INQ", "DEP", "WDL"]:
-            total_counter += 1
-            trans_no = 0
+# Main loop to listen for Arduino input
+if arduino_connected:
+    while True:
+        try:
+            line = ser.readline().decode('utf-8').strip()
+            if line in ["INQ", "DEP", "WDL"]:
+                total_counter += 1
+                trans_no = 0
 
-            if line == "INQ":
-                transaction_type = "Inquiry"
-                inquiry_counter += 1
-                trans_no = inquiry_counter
-            elif line == "DEP":
-                transaction_type = "Deposit"
-                deposit_counter += 1
-                trans_no = deposit_counter
-            elif line == "WDL":
-                transaction_type = "Withdrawal"
-                withdrawal_counter += 1
-                trans_no = withdrawal_counter
+                if line == "INQ":
+                    transaction_type = "Inquiry"
+                    inquiry_counter += 1
+                    trans_no = inquiry_counter
+                elif line == "DEP":
+                    transaction_type = "Deposit"
+                    deposit_counter += 1
+                    trans_no = deposit_counter
+                elif line == "WDL":
+                    transaction_type = "Withdrawal"
+                    withdrawal_counter += 1
+                    trans_no = withdrawal_counter
 
-            now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # Save to the database
-            formatted_queue_number = save_to_database(transaction_type, trans_no, now)
+                # Save to the database
+                formatted_queue_number = save_to_database(transaction_type, trans_no, now)
 
-            # Format the receipt text
-            receipt_text = (
-                bold_on.decode() + "MyBank Express\n" + bold_off.decode() +
-                "\n" +
-                big_on.decode() + f"{total_counter:03d}\n" + big_off.decode() +
-                "\n" +
-                f"""Transaction: {transaction_type}
+                # Format the receipt text
+                receipt_text = (
+                    bold_on.decode() + "MyBank Express\n" + bold_off.decode() +
+                    "\n" +
+                    big_on.decode() + f"{total_counter:03d}\n" + big_off.decode() +
+                    "\n" +
+                    f"""Transaction: {transaction_type}
 {transaction_type} No.: {trans_no:02d}
 Queue Number: {formatted_queue_number}
 Date: {now}
@@ -123,22 +123,24 @@ Please wait for your turn.
 Thank you!
 \n\n\n
 """
-            )
+                )
 
-            print("Printing receipt:")
-            print(receipt_text)
+                print("Printing receipt:")
+                print(receipt_text)
 
-            raw_data = receipt_text.encode('utf-8')
+                raw_data = receipt_text.encode('utf-8')
 
-            # Send receipt to the printer
-            hPrinter = win32print.OpenPrinter(printer_name)
-            try:
-                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Queue Receipt", None, "RAW"))
-                win32print.StartPagePrinter(hPrinter)
-                win32print.WritePrinter(hPrinter, raw_data)
-                win32print.EndPagePrinter(hPrinter)
-                win32print.EndDocPrinter(hPrinter)
-            finally:
-                win32print.ClosePrinter(hPrinter)
-    except Exception as e:
-        print(f"Error: {e}")
+                # Send receipt to the printer
+                hPrinter = win32print.OpenPrinter(printer_name)
+                try:
+                    hJob = win32print.StartDocPrinter(hPrinter, 1, ("Queue Receipt", None, "RAW"))
+                    win32print.StartPagePrinter(hPrinter)
+                    win32print.WritePrinter(hPrinter, raw_data)
+                    win32print.EndPagePrinter(hPrinter)
+                    win32print.EndDocPrinter(hPrinter)
+                finally:
+                    win32print.ClosePrinter(hPrinter)
+        except Exception as e:
+            print(f"Error: {e}")
+else:
+    print("Arduino is not connected. Manual input can still be used.")

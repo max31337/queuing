@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 import time
 from multiprocessing import Process
 from fastapi.middleware.cors import CORSMiddleware
+import schedule  # Add this import
+import win32print
+from app.crud import end_of_day_processing
 
 app = FastAPI()
 
@@ -33,9 +36,40 @@ def get_db():
 def test_route():
     return "FastAPI is running correctly!"
 
-@app.post("/queue", response_model=schemas.QueueRead)
+@app.post("/manual-input", response_model=schemas.QueueRead)
 def add_to_queue(item: schemas.QueueCreate, db: Session = Depends(get_db)):
-    return crud.create_queue(db, item)
+    queue_entry = crud.create_queue(db, item)
+
+    # Generate and print the receipt
+    receipt_text = f"""
+    MyBank Express
+    ----------------------
+    Queue Number: {queue_entry.queue_number}
+    Transaction: {queue_entry.type}
+    Status: {queue_entry.status}
+    Date: {queue_entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}
+    ----------------------
+    Please wait for your turn.
+    Thank you!
+    """
+
+    print_receipt(receipt_text)
+    return queue_entry
+
+def print_receipt(receipt_text: str):
+    printer_name = "POS58 Printer(3)"  # Replace with your printer's name
+    raw_data = receipt_text.encode('utf-8')
+
+    # Send receipt to the printer
+    hPrinter = win32print.OpenPrinter(printer_name)
+    try:
+        hJob = win32print.StartDocPrinter(hPrinter, 1, ("Queue Receipt", None, "RAW"))
+        win32print.StartPagePrinter(hPrinter)
+        win32print.WritePrinter(hPrinter, raw_data)
+        win32print.EndPagePrinter(hPrinter)
+        win32print.EndDocPrinter(hPrinter)
+    finally:
+        win32print.ClosePrinter(hPrinter)
 
 @app.patch("/queue/{queue_id}", response_model=schemas.QueueRead)
 def update_queue_status(queue_id: int, update: schemas.QueueUpdate, db: Session = Depends(get_db)):
@@ -109,8 +143,27 @@ def archive_done_entries_periodically():
             db.close()
         time.sleep(60)  # Run every 60 seconds
 
+# Function to run end-of-day processing
+def run_end_of_day_processing():
+    db = SessionLocal()
+    try:
+        end_of_day_processing(db)
+        print("End-of-day processing completed.")
+    except Exception as e:
+        print(f"Error during end-of-day processing: {e}")
+    finally:
+        db.close()
+
+# Schedule the task to run daily at 11:59 PM
+def schedule_end_of_day_task():
+    schedule.every().day.at("23:59").do(run_end_of_day_processing)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 # Start printer.py in a separate thread when the app starts
 @app.on_event("startup")
 def startup_event():
     Process(target=run_printer_script, daemon=True).start()
     threading.Thread(target=archive_done_entries_periodically, daemon=True).start()
+    threading.Thread(target=schedule_end_of_day_task, daemon=True).start()

@@ -8,3 +8,4 @@ pyserial
 psycopg2-binary>=2.9.10
 pywin32
 serial
+schedule

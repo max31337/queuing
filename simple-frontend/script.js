@@ -3,6 +3,11 @@ function showPage(pageId) {
         section.classList.remove("active");
     });
     document.getElementById(pageId).classList.add("active");
+
+    // If navigating to the Archived List, load the first page of archived queues
+    if (pageId === "archivedList") {
+        loadArchivedPage(1); // Load the first page of archived queues
+    }
 }
 
 function openQueueList() {
@@ -203,6 +208,7 @@ document.getElementById("counterForm").addEventListener("submit", async function
         body: JSON.stringify(data)
     });
 
+
     if (response.ok) {
         const result = await response.json();
         document.getElementById("counterResponse").innerText = `Queue updated successfully: ${result.queue_number}`;
@@ -218,6 +224,65 @@ document.getElementById("counterForm").addEventListener("submit", async function
     }
 });
 
+document.getElementById("queueForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const type = document.getElementById("type").value;
+    const status = document.getElementById("status").value;
+
+    try {
+        // Save the queue to the database
+        const response = await fetch("http://127.0.0.1:8000/manual-input", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type, status })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            document.getElementById("manualInputResponse").innerText = `Queue added successfully: ${result.queue_number}`;
+            setTimeout(() => {
+                document.getElementById("manualInputResponse").innerText = "";
+            }, 3000);
+
+            // Generate and print the receipt
+            printReceipt(result.queue_number, type, status);
+        } else {
+            const error = await response.json();
+            document.getElementById("manualInputResponse").innerText = `Error: ${error.detail}`;
+        }
+    } catch (error) {
+        console.error("Error adding queue:", error);
+        document.getElementById("manualInputResponse").innerText = "Error adding queue.";
+    }
+});
+
+// Function to print the receipt
+function printReceipt(queueNumber, type, status) {
+    const receiptText = `
+        MyBank Express
+        ----------------------
+        Queue Number: ${queueNumber}
+        Transaction: ${type}
+        Status: ${status}
+        Date: ${new Date().toLocaleString()}
+        ----------------------
+        Please wait for your turn.
+        Thank you!
+    `;
+
+    console.log("Printing receipt:");
+    console.log(receiptText);
+
+    // Send the receipt to the printer
+    const rawData = receiptText;
+    const hPrinter = window.open("", "_blank");
+    hPrinter.document.write(`<pre>${rawData}</pre>`);
+    hPrinter.document.close();
+    hPrinter.print();
+    hPrinter.close();
+}
+
 loadQueueNumbers();
 loadSkippedQueues();
 
@@ -232,6 +297,7 @@ async function loadActiveQueue() {
         <tr>
             <td>${queue.queue_number}</td>
             <td>${queue.type}</td>
+            
             <td>${queue.status}</td>
         </tr>
     `).join("");
@@ -241,3 +307,31 @@ async function loadActiveQueue() {
 setInterval(loadActiveQueue, 2000);
 loadActiveQueue();
 
+
+
+async function loadArchivedPage(page = 1) {
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/queue/archived?page=${page}&page_size=10`);
+        const archivedQueues = await response.json();
+
+        const table = document.getElementById("archivedQueueTable");
+        if (archivedQueues.length === 0) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="3" style="text-align: center;">No archived queues available</td>
+                </tr>
+            `;
+        } else {
+            table.innerHTML = archivedQueues.map(queue => `
+                <tr>
+                    <td>${queue.queue_number}</td>
+                    <td>${queue.type}</td>
+                    <td>${queue.status}</td>
+                    <td>${queue.date}</td>
+                </tr>
+            `).join("");
+        }
+    } catch (error) {
+        console.error("Error loading archived queues:", error);
+    }
+}

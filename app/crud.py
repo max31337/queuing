@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from . import models, schemas
 from datetime import datetime, date
+import schedule
 
 def create_queue(db: Session, item: schemas.QueueCreate):
     # Get today's date
@@ -82,4 +83,30 @@ def archive_done_entries(db: Session):
     )
     for entry in done_entries:
         entry.archived = True  # Mark as archived
+    db.commit()
+
+def end_of_day_processing(db: Session):
+    # Get today's date
+    today = datetime.utcnow().date()
+
+    # Update all 'waiting' and 'processing' transactions to 'done'
+    transactions_to_update = db.query(models.QueueEntry).filter(
+        models.QueueEntry.date == today,
+        models.QueueEntry.status.in_([schemas.QueueStatus.waiting, schemas.QueueStatus.processing])
+    ).all()
+
+    for transaction in transactions_to_update:
+        transaction.status = schemas.QueueStatus.done
+        transaction.timestamp = datetime.utcnow()  # Update timestamp to now
+
+    # Archive all 'done' transactions
+    done_transactions = db.query(models.QueueEntry).filter(
+        models.QueueEntry.date == today,
+        models.QueueEntry.status == schemas.QueueStatus.done,
+        models.QueueEntry.archived == False
+    ).all()
+
+    for transaction in done_transactions:
+        transaction.archived = True  # Mark as archived
+
     db.commit()

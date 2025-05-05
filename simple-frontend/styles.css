@@ -12,10 +12,22 @@ h1, h2, h3 {
     margin-bottom: 20px;
 }
 
+/* Center the entire page content */
+.container {
+    max-width: 800px; /* Limit the width of the content */
+    margin: 0 auto; /* Center horizontally */
+    padding: 20px; /* Add some padding */
+    background-color: #ffffff; /* White background for contrast */
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Center the navigation buttons */
 nav {
-    margin-bottom: 20px;
     display: flex;
+    justify-content: center; /* Center the buttons horizontally */
     gap: 10px;
+    margin-bottom: 20px;
 }
 
 nav button, button {
@@ -23,9 +35,9 @@ nav button, button {
     color: #ffffff;
     border: 1px solid transparent;
     border-radius: 6px;
-    padding: 8px 16px;
+    padding: 10px 20px;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 500;
     transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
 }
@@ -48,13 +60,15 @@ nav button:disabled, button:disabled {
     transform: none;
 }
 
+/* Center the sections */
 section {
     display: none;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 20px auto; /* Center the sections */
     padding: 20px;
-    margin-top: 20px;
+    background-color: #f9fafb; /* Light gray background */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    max-width: 600px; /* Limit the width of sections */
 }
 
 section.active {
@@ -68,8 +82,9 @@ section.active {
     color: #1f2937;
 }
 
+/* Style the table */
 table {
-    width: 100%;
+    width: 100%; /* Full width within the container */
     border-collapse: collapse;
     margin-top: 20px;
     background-color: #ffffff;
@@ -86,11 +101,12 @@ th {
     background-color: #f3f4f6;
     font-weight: 600;
     color: #374151;
-    text-align: left;
+    text-align: center; /* Center-align table content */
 }
 
 th, td {
     padding: 12px;
+    text-align: center; /* Center-align table content */
 }
 
 td {
@@ -138,15 +154,17 @@ tr:nth-child(even) {
     transform: none;
 }
 
+/* Style the current-next section */
 .current-next {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 20px 0;
+    margin: 20px auto;
     padding: 20px;
     background-color: #f3f4f6; /* Light gray background */
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    max-width: 600px; /* Limit the width */
 }
 
 .current-next div {
