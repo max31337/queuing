@@ -124,6 +124,11 @@ def list_archived_queues(page: int = 1, page_size: int = 10, db: Session = Depen
     )
     return archived_queues
 
+@app.get("/queue/archived/count")
+def get_archived_queue_count(db: Session = Depends(get_db)):
+    count = db.query(models.QueueEntry).filter(models.QueueEntry.archived == True).count()
+    return count
+
 @app.get("/queue/skipped", response_model=list[schemas.QueueRead])
 def get_skipped_queues(db: Session = Depends(get_db)):
     skipped = db.query(models.QueueEntry).filter(models.QueueEntry.status == "skipped").all()

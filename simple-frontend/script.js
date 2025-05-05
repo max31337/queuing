@@ -245,8 +245,6 @@ document.getElementById("queueForm").addEventListener("submit", async function (
                 document.getElementById("manualInputResponse").innerText = "";
             }, 3000);
 
-            // Generate and print the receipt
-            printReceipt(result.queue_number, type, status);
         } else {
             const error = await response.json();
             document.getElementById("manualInputResponse").innerText = `Error: ${error.detail}`;
@@ -257,31 +255,6 @@ document.getElementById("queueForm").addEventListener("submit", async function (
     }
 });
 
-// Function to print the receipt
-function printReceipt(queueNumber, type, status) {
-    const receiptText = `
-        MyBank Express
-        ----------------------
-        Queue Number: ${queueNumber}
-        Transaction: ${type}
-        Status: ${status}
-        Date: ${new Date().toLocaleString()}
-        ----------------------
-        Please wait for your turn.
-        Thank you!
-    `;
-
-    console.log("Printing receipt:");
-    console.log(receiptText);
-
-    // Send the receipt to the printer
-    const rawData = receiptText;
-    const hPrinter = window.open("", "_blank");
-    hPrinter.document.write(`<pre>${rawData}</pre>`);
-    hPrinter.document.close();
-    hPrinter.print();
-    hPrinter.close();
-}
 
 loadQueueNumbers();
 loadSkippedQueues();
@@ -307,7 +280,8 @@ async function loadActiveQueue() {
 setInterval(loadActiveQueue, 2000);
 loadActiveQueue();
 
-
+let currentArchivedPage = 1; // Track the current page
+let totalArchivedPages = 1; // Track the total number of pages
 
 async function loadArchivedPage(page = 1) {
     try {
@@ -318,20 +292,58 @@ async function loadArchivedPage(page = 1) {
         if (archivedQueues.length === 0) {
             table.innerHTML = `
                 <tr>
-                    <td colspan="3" style="text-align: center;">No archived queues available</td>
+                    <td colspan="4" style="text-align: center;">No archived queues available</td>
                 </tr>
             `;
         } else {
-            table.innerHTML = archivedQueues.map(queue => `
+            table.innerHTML = archivedQueues.map(queue => {
+                // Format the timestamp
+                const timestamp = new Date(queue.timestamp);
+                const formattedDate = timestamp.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                const formattedTime = timestamp.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
                 <tr>
                     <td>${queue.queue_number}</td>
                     <td>${queue.type}</td>
                     <td>${queue.status}</td>
-                    <td>${queue.date}</td>
+                    <td>${formattedDate} ${formattedTime}</td>
                 </tr>
-            `).join("");
+                `;
+            }).join("");
         }
+
+        // Update the current page and total pages
+        currentArchivedPage = page;
+
+        // Fetch the total number of archived queues to calculate total pages
+        const countResponse = await fetch("http://127.0.0.1:8000/queue/archived/count");
+        const totalArchivedCount = await countResponse.json();
+        totalArchivedPages = Math.ceil(totalArchivedCount / 10);
+
+        // Enable/disable the Previous and Next buttons
+        document.getElementById("prevButton").disabled = currentArchivedPage === 1;
+        document.getElementById("nextButton").disabled = currentArchivedPage === totalArchivedPages;
     } catch (error) {
         console.error("Error loading archived queues:", error);
+    }
+}
+
+function goToPreviousPage() {
+    if (currentArchivedPage > 1) {
+        loadArchivedPage(currentArchivedPage - 1);
+    }
+}
+
+function goToNextPage() {
+    if (currentArchivedPage < totalArchivedPages) {
+        loadArchivedPage(currentArchivedPage + 1);
     }
 }
